@@ -30,3 +30,118 @@ Similar to the above, if a number is negative then 26 is added to make the numbe
 
 Weaknesses
 Almost none if the key is truly random.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Simple otp (One Time Pad)
+NONE of the implementations are intended for production usage. They have not been extensively validated for it. These files are simply an educational tool for looking at AN implementation that works to help people understand it.
+
+There are two accompanying videos to this repository, one walks through the python implementation in detail, and another is an animated explanation of the one-time pad protocol on the whole:
+
+Python Code Walkthrough
+Animated Explanation
+Table of contents
+Usage
+Glossary
+Variables
+Functions
+Theory
+1. Background
+2. ASCII Conversion
+3. Pad Generation
+4. Generating a ciphertext
+5. Decrypting to plaintext
+Usage
+Each folder contains a language implementation with details on how to setup a runtime environment and run the corresponding file. The most polished implementation is python since that's my preferred language. When you run the file it will generate three files pad.txt, ciphertext.txt and plaintext.txt these each correspond to the variables generated based on the terms below.
+
+Glossary
+Throughout the files I use a set of standardized terms to refer to variables and functions to make the implementations understandable:
+
+Variables
+text: The text that you want to encrypt, in all files this is hardcoded and I am using Do not go gentle into that good night by Dylan Thomas.
+
+pad: The one time pad that is used to encrypt the text
+
+ciphertext: The text generated through the iterative XORing of the text and pad
+
+plaintext: The decrypted value generated through the XORing of the pad and ciphertext (should match the text variable if the implementation is correct)
+
+Functions
+Note the names change to suit whatever is the preferred language style so I have opted to just use names with uppercase first letters and spaces in between instead of either snake_case or camelCase.
+
+Generate pad: Used to generate the one-time pad. Will take in an integer for the length of pad it needs to generate and return whatever type is most appropriate for the language (either a string or char array). This is completed during step 3 of the theory section.
+
+Encrypt: Generates the ciphertext using the pad and text, then return it as whatever type is most appropriate for the language (either a string or char array). This is completed during step 4 of the theory section.
+
+Decrypt: Takes in the ciphertext and pad, generates the plaintext and return it as whatever type is most appropriate for the language (either a string or char array). This is completed during step 5 of the theory section.
+
+Save: Takes in either a string or char array based on which language it is, and a file path then serializes the string/char array to the path provided.
+
+Theory
+This explanation is meant to be somewhat simplistic and skip over some of the detail about secrecy and proofs why the math works. This description is meant to be a laymen's terms, step-by-step walkthrough of how the one-time pad protocol works.
+
+Again there is also an animated explanation of the protocol you can watch.
+
+1. Background
+The one-time pad relies on a number of principles that aren't immediately obvious to everyone, two of the most basic are:
+
+Any character can be represented as an integer
+
+XORing 2 values, and then XORing the result of the values with one of the original values produces the other. So for example:
+
+a XOR b = c
+c XOR b = a
+c XOR a = b
+or
+
+text XOR pad = ciphertext
+ciphertext XOR pad = text
+ciphertext XOR text = pad
+Additionally to maintain secrecy there are a few things that need to be done:
+
+Each pad must be used one time, or else the ciphertexts are susceptible to cribdragging (a technique where you can use only resulting ciphertexts to determine the original pad).
+The numbers generated must be random as flaws in the pseudorandom generation can be exploited.
+The attacker must not have any intuition (be able to guess) as to what's inside the files.
+2. ASCII Conversion
+One way to do a conversion from string/chars to integers is to use an ASCII table, which allows you to have a 1-1 mapping of characters to an (at most) 2 byte integer. For example let's convert the string 'Hello' using the ASCII table below. The 'H' corresponds to 72 (0x48 in hex and 0b1001000 in binary) using the chart so that would be our first integer. The whole sequence would then be (72, 101, 108, 108, 111).
+
+3. Pad Generation
+From there we would use a random number generator to generate a pad of random 2 byte integers that is the same length as the input text (in this case 5 characters) lets say they are (11, 212, 8, 224, 122) which corresponds to ("VT", "Ô", "BS", "à", "z" ) . Notice that not all of these are printable characters (any with two letters) and so the resulting text file may end up looking weird.
+
+4. Generating a ciphertext
+The ciphertext can now be generated by iterating over the integer representations of the pad and original text ("Hello") and XORing them together. To XOR two numbers take the integers and convert them to binary, from there line up each binary number into columns and on columns where one of the bits is a 1 and the other is a 0 the result is 1, any other combination is a 0.
+
+For example for the first character of our pad and original text "VT" (11) and "H"(72) would be:
+
+0000 1011 ("VT" or 11)
+0100 1000 ("H" or 72)
+----------
+0100 0011 ("C" or 67)
+The whole sequence would be:
+
+Characters: ("H", "e", "l", "l", "o") XOR ("VT", "Ô", "BS", "à", "z" ) = ("C", "±", "d", "Œ", "NAK")
+
+Decimal: (72, 101, 108, 108, 111) XOR (11, 212, 8, 224, 122) = (67, 177, 100, 140, 21)
+Now that we have the pad and ciphertext, you can give someone the ciphertext over a public channel and it can only be decrypted if they also have the pad (which should be sent through a secured channel).
+
+5. Decrypting to plaintext
+Now to decrypt we do the same thing we did to generate the ciphertext, but with the ciphertext and pad characters to reverse it to the plaintext (remember  ciphertext XOR pad = text). So in this case:
+
+Characters: ("VT", "Ô", "BS", "à", "z" ) XOR ("C", "±", "d", "Œ", "NAK") = ("H", "e", "l", "l", "o")
+
+Decimal: (11, 212, 8, 224, 122) XOR (67,
